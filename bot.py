@@ -23,8 +23,9 @@ async def ping(ctx):
 async def on_message(message):
     if message.author == bot.user:
         return
-
     if(message.channel.id != 287438361528893442):
+        return
+    if(datetime.now().hour > 22 and datetime.now().hour < 8):
         return
 
     # record the messages sent

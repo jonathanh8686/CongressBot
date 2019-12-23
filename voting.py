@@ -100,11 +100,14 @@ class Voting(commands.Cog):
                 self.currentProp.status = "Rejected."
                 self.currentProp.color = 0xff3311
             elif(len(self.currentProp.ayes) > len(self.currentProp.nays)):
+                #TODO: Allow Derek Veto?
+
                 self.currentProp.status = "Passed."
                 self.currentProp.color = 0x00ff11
             else:
                 # derek vote tiebreak
                 if("Airikan#7238" in self.currentProp.ayes):
+                #TODO: Allow Derek Veto?
                     self.currentProp.status = "Passed. (with tiebreak)"
                     self.currentProp.color = 0x00ff11
                 elif("Airikan#7238" in self.currentProp.nays):
