@@ -1,49 +1,12 @@
 from discord.ext import tasks, commands
+import pytz
 import asyncio
 from datetime import datetime
 from datetime import timedelta
 import discord
 import json
 
-
-class Proposition():
-    embedMessage = discord.Embed()
-    title, author, starttime = "" , "" , None
-    color = 0x0055ff
-
-    ayes, nays = [], []
-    status = "Voting..."
-
-    def __init__(self, title, author, starttime):
-        self.title = title
-        self.author = author
-        self.starttime = starttime
-
-        self.ayes, self.nays = [], []
-
-    def getEmbed(self):
-        self.embedMessage = discord.Embed()
-
-        self.embedMessage.title = self.title
-        self.embedMessage.color = self.color
-        self.embedMessage.add_field(name="Author", value=self.author, inline=True)
-
-        strStartTime = self.starttime.strftime("%H:%M:%S")
-        strEndTime = (self.starttime + timedelta(hours=1)).strftime("%H:%M:%S")
-        self.embedMessage.add_field(name="Time", value=strStartTime, inline=True)
-        self.embedMessage.add_field(name="End Time", value=strEndTime, inline=True)
-
-        ayeText, nayText = "\n".join(self.ayes), "\n".join(self.nays)
-        if(ayeText == ""):
-            ayeText = "No voters yet!"
-        if(nayText == ""):
-            nayText = "No voters yet!"
-
-        self.embedMessage.add_field(name="Ayes", value=ayeText, inline=False)
-        self.embedMessage.add_field(name="Nays", value=nayText, inline=False)
-
-        self.embedMessage.set_footer(text="Status: {}".format(self.status))
-        return self.embedMessage
+from proposition import Proposition
 
 class Voting(commands.Cog):
 
@@ -93,21 +56,18 @@ class Voting(commands.Cog):
                 continue
             votingMem.append(m)
 
-        if(len(self.currentProp.ayes) + len(self.currentProp.nays) == len(votingMem) or\
-           self.currentProp.starttime + timedelta(hours=1) < datetime.now()):
+        ayeVotes, nayVotes = len(self.currentProp.ayes), len(self.currentProp.nays)
+        if(ayeVotes + nayVotes == len(votingMem) or self.currentProp.start_time + timedelta(hours=1) < datetime.now() and (ayeVotes + nayVotes) > 0.66*len(votingMem)):
 
             if(len(self.currentProp.ayes) < len(self.currentProp.nays)):
                 self.currentProp.status = "Rejected."
                 self.currentProp.color = 0xff3311
             elif(len(self.currentProp.ayes) > len(self.currentProp.nays)):
-                #TODO: Allow Derek Veto?
-
                 self.currentProp.status = "Passed."
                 self.currentProp.color = 0x00ff11
             else:
                 # derek vote tiebreak
                 if("Airikan#7238" in self.currentProp.ayes):
-                #TODO: Allow Derek Veto?
                     self.currentProp.status = "Passed. (with tiebreak)"
                     self.currentProp.color = 0x00ff11
                 elif("Airikan#7238" in self.currentProp.nays):
@@ -118,6 +78,9 @@ class Voting(commands.Cog):
                     self.currentProp.color = 0xffe605
             self.vote_in_progress = False
             await self.updateMessages()
+        elif(self.currentProp.start_time + timedelta(hours=1) < datetime.now() and (ayeVotes+nayVotes) < 0.66*len(votingMem)):
+           self.currentProp.status = "Failed to Reach Decision."
+           self.currentProp.color = 0xffe605
 
     @commands.Cog.listener()
     async def on_reaction_add(self, reaction, user):
@@ -153,7 +116,7 @@ class Voting(commands.Cog):
         self.vote_in_progress = True
         print("{0.author}\t has started a vote to\t {1}!".format(ctx, " ".join(args)))
 
-        self.currentProp = Proposition(" ".join(args), ctx.author, datetime.now())
+        self.currentProp = Proposition(" ".join(args), ctx.author, datetime.now(pytz.timezone('US/Pacific')))
         self.start_message = await ctx.send(embed=self.currentProp.getEmbed())
 
         print("Sending options to moderator/admin")
