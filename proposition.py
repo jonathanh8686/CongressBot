@@ -1,7 +1,13 @@
+from discord.ext import tasks, commands
+import pytz
+import asyncio
+from datetime import datetime
+from datetime import timedelta
 import discord
+import json
 
 class Proposition():
-    embed_Message = discord.Embed()
+    embed_message = discord.Embed()
     title, author, start_time = "" , "" , None
     color = 0x0055ff
 
@@ -19,16 +25,16 @@ class Proposition():
         self.voting_members = voting_members
 
     def get_embed(self):
-        self.embed_Message = discord.Embed()
+        self.embed_message = discord.Embed()
 
-        self.embed_Message.title = self.title
-        self.embed_Message.color = self.color
-        self.embed_Message.add_field(name="Author", value=self.author, inline=True)
+        self.embed_message.title = self.title
+        self.embed_message.color = self.color
+        self.embed_message.add_field(name="Author", value=self.author, inline=True)
 
         strStartTime = self.start_time.strftime("%H:%M:%S")
         strEndTime = (self.start_time + timedelta(hours=1)).strftime("%H:%M:%S")
-        self.embed_Message.add_field(name="Start Time", value=strStartTime, inline=True)
-        self.embed_Message.add_field(name="End Time", value=strEndTime, inline=True)
+        self.embed_message.add_field(name="Start Time", value=strStartTime, inline=True)
+        self.embed_message.add_field(name="End Time", value=strEndTime, inline=True)
 
         if(self.status != "Voting..."): # don't reveal public votes until the end
             ayeText, nayText = "\n".join(self.ayes), "\n".join(self.nays)
@@ -37,13 +43,11 @@ class Proposition():
             if(nayText == ""):
                 nayText = "No voters yet!"
 
-            self.embed_Message.add_field(name="Ayes", value=ayeText, inline=False)
-            self.embed_Message.add_field(name="Nays", value=nayText, inline=False)
+            self.embed_message.add_field(name="Ayes", value=ayeText, inline=False)
+            self.embed_message.add_field(name="Nays", value=nayText, inline=False)
         else: # voting is still happening -- reveal non-voted members
-            non_voting_members = [m in voting_members if(m not in ayes or m not in nays)]
-            self.embed_Message.add_field(
+            non_voting_members = [str(m) for m in self.voting_members if(str(m) not in self.ayes or m not in self.nays)]
+            self.embed_message.add_field(name="Currently Voting Members", value="\n".join(non_voting_members), inline=False)
 
-
-
-        self.embed_Message.set_footer(text="Status: {}".format(self.status))
-        return self.embed_Message
+        self.embed_message.set_footer(text="Status: {}".format(self.status))
+        return self.embed_message
