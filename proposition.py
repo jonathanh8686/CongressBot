@@ -46,7 +46,7 @@ class Proposition():
             self.embed_message.add_field(name="Ayes", value=ayeText, inline=False)
             self.embed_message.add_field(name="Nays", value=nayText, inline=False)
         else: # voting is still happening -- reveal non-voted members
-            non_voting_members = [str(m) for m in self.voting_members if(str(m) not in self.ayes or m not in self.nays)]
+            non_voting_members = [str(m) for m in self.voting_members if(str(m) not in self.ayes and str(m) not in self.nays)]
             self.embed_message.add_field(name="Currently Voting Members", value="\n".join(non_voting_members), inline=False)
 
         self.embed_message.set_footer(text="Status: {}".format(self.status))

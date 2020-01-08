@@ -29,7 +29,7 @@ async def changelog(ctx):
     changelog_embed.add_field(name="Protected voting", value="Voting sides are no longer revealed before the final decision of a proposition has been made")
     changelog_embed.add_field(name="Time's Up", value="Propositions that have reached the end of the 1 hour voting period without all members voting will be passed/rejected if there is a quorum of 66%")
     changelog_embed.add_field(name="Time is right", value="Timezones of Congress are always be to from PST -- Start/End times fixed.")
-    
+
 
     await ctx.send(embed=changelog_embed)
 

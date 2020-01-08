@@ -78,6 +78,7 @@ class Voting(commands.Cog):
         elif(self.currentProp.start_time + timedelta(hours=1) < pytz.timezone('US/Pacific').localize(datetime.now()) and (ayeVotes + nayVotes) < 0.66 * len(self.currentProp.voting_members)):
            self.currentProp.status = "Failed to Reach Decision."
            self.currentProp.color = 0xffe605
+           self.vote_in_progress = False
 
 
     @commands.Cog.listener()
@@ -112,7 +113,8 @@ class Voting(commands.Cog):
     @commands.command()
     async def startvote(self, ctx, *args):
 
-        if(datetime.now().hour > 22 or datetime.now().hour < 8):
+        if(pytz.timezone('US/Pacific').localize(datetime.now()).hour > 22 or pytz.timezone('US/Pacific').localize(datetime.now()).hour < 8):
+            print(pytz.timezone('US/Pacific').localize(datetime.now()).hour)
             await ctx.send("""```css\nCongress is adjourned.```""")
             return
 
@@ -122,7 +124,7 @@ class Voting(commands.Cog):
 
         self.vote_in_progress = True
         print("{0.author}\t has started a vote to\t {1}!".format(ctx, " ".join(args)))
-        
+
         voting_members = [m for m in ctx.channel.members if m.bot == False]
 
         self.currentProp = Proposition(" ".join(args), ctx.author, datetime.now(pytz.timezone('US/Pacific')), voting_members)

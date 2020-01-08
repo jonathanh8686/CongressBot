@@ -1,3 +1,6 @@
 
 # stores the configuration of the user
 config.json
+
+# don't take the vim swap files
+*.swp
